@@ -1,0 +1,33 @@
+{
+  "name": "draga-automation-system",
+  "version": "1.0.0",
+  "description": "Sistema de automação e monitoramento de draga com controle em tempo real",
+  "private": true,
+  "workspaces": [
+    "embedded",
+    "backend",
+    "frontend",
+    "mobile"
+  ],
+  "scripts": {
+    "install:all": "npm install && cd embedded && pip install -r requirements.txt",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:mobile": "cd mobile && npm start",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "keywords": [
+    "draga",
+    "automation",
+    "iot",
+    "scada",
+    "plc",
+    "monitoring"
+  ],
+  "author": "",
+  "license": "MIT"
+}

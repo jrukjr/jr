@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:14-alpine
+    container_name: draga-postgres
+    environment:
+      POSTGRES_DB: draga_db
+      POSTGRES_USER: draga
+      POSTGRES_PASSWORD: draga123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - draga-network
+    restart: unless-stopped
+
+  # MQTT Broker (Mosquitto)
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: draga-mqtt
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - draga-network
+    restart: unless-stopped
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: draga-backend
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      DATABASE_URL: postgresql://draga:draga123@postgres:5432/draga_db
+      MQTT_BROKER_URL: mqtt://mqtt:1883
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - mqtt
+    networks:
+      - draga-network
+    restart: unless-stopped
+
+  # Frontend Web
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: draga-frontend
+    environment:
+      REACT_APP_API_URL: http://localhost:3001/api
+      REACT_APP_WS_URL: http://localhost:3001
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - draga-network
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+
+networks:
+  draga-network:
+    driver: bridge
